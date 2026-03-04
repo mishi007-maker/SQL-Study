@@ -1,0 +1,106 @@
+SQL JOINS
+
+= Used to combine data of related tables using a common column
+
+syntax:
+select * from table1 join table2 on table1.common_column=table2.common_column
+
+1. students to results
+select * from students as s join results as r on s.id=r.student_id;
+2. join staff to courses
+select * from staff as st join courses as c on st.id=c.staff_id;
+3. join students with enrollments
+ select * from students as s join enrollments as en on s.id=en.student_id;
+4. join courses to enrollments
+ select * from courses as c join enrollments as en on c.id=en.course_id;
+
+Types of joins
+
+SQL inner join
+Right join
+Left join
+Full join
+
+=>inner join-used to retrieve rows or data where matching values exist in both tables.
+
+
+2.Display : OrderId, OrderDate, CustomerName, City, Address, PostalCode, ShipperName, ProductName, Quantity.
+
+SELECT Orders.OrderID,Orders.OrderDate,Customers.CustomerName,Customers.City,customers.Address,Customers.PostalCode,Shippers.ShipperName,Products.ProductName,OrderDetails.Quantity FROM Orders INNER JOIN Customers ON Orders.CustomerID = Customers.CustomerID INNER JOIN Shippers ON Orders.ShipperID = Shippers.ShipperID INNER JOIN OrderDetails ON Orders.OrderID = OrderDetails.OrderID INNER JOIN Products ON OrderDetails.ProductID = Products.ProductID;
+
+
+3.Display all products ever been ordered and display the shipper name.
+
+
+SELECT Products.ProductName,Shippers.ShipperName FROM Products
+INNER JOIN OrderDetails ON Products.ProductID=OrderDetails.ProductID
+INNER JOIN Orders ON OrderDetails.OrderID = Orders.OrderID INNER JOIN Shippers ON Orders.ShipperID = Shippers.ShipperID;
+
+
+4.How many customers DO NOT have the words ‘son’ in their CustomerName.
+
+SELECT COUNT(*) AS CustomersWithoutSon FROM Customers WHERE CustomerName NOT LIKE '%son%';
+
+6.Display each customer_name and total_amount ever spent in the business, from highest amount.
+
+SELECT c.customername,c.customerid,sum(p.price*ord.quantity) as total_amount FROM customers as c inner join orders as o on c.customerid=o.customerid inner join orderdetails as ord on o.orderid=ord.orderid inner join products as p on ord.productid=p.productid group by c.customerid, c.customername order by sum(p.price*ord.quantity) desc;
+
+7.Find total sales per day.
+
+SELECT o.orderdate as sales_date, sum(price*ord.quantity) as total_sales FROM Orders as o inner join orderdetails as ord on o.orderid=ord.orderid inner join products as p on p.productid=ord.productid group by o.orderdate;
+
+8.Find the total sales for each customer,the ones who have never ordered leave as 0.
+
+SELECT c.customername,c.customerid,sum(price*ord.quantity) as o FROM Customers as c left join orders as o on c.customerid=o.customerid left join orderdetails as ord on ord.orderid=o.orderid left join products as p on p.productid=ord.productid group by sum(price*ord.quantity) order by c.customerid,c.customername;
+
+9.create the table payments and determine the foreign key ,any relevant columns and their respective datatypes.
+
+=Create table payments(payment_id INT PRIMARY KEY NOT NULL,order_id INT NOT NULL, mode of payment VARCHAR(100) NOT NULL,Payment_date timestamp NOT NULL,amount FLOAT NOT NULL, constraint my_orders foreign key(order_id) references orders(orderid) on update cascade on delete restrict);
+
+=INSERT INTO payments(customer_id,cheque_no,payment_date,amount) VALUES (......)*5
+
+10.find total sales of each product...
+
+SELECT p.productname,p.productid, sum(p.price*ord.quantity) as total_sales FROM Products as p left join orderdetails as ord on p.productid=ord.productid group by p.productid,p.productname;
+
+11.find total sales made in the year 1997.
+
+SELECT sum(p.price*ord.quantity) as total_sales FROM Orders as o inner join orderdetails as ord on o.orderid=ord.orderid inner join products as p on p.productid=ord.productid where year (o.orderdate)=1997;
+
+we can also use having=to give conditions on groups..after group by is the only time you can use having..
+
+12.show total quantity ordered per product.
+
+SELECT p.productid,sum(ord.quantity) as total_quantity,p.productname FROM Products as p join orderdetails as ord on p.productid=ord.productid group by p.productid,p.productname;
+
+13.show total orders per customer.
+
+SELECT c.customerid,c.customername, count(o.orderid) as total_orders FROM Customers as c inner join orders as o on c.customerid=o.customerid group by c.customerid,c.customername;
+
+14.show total sales amount per product.
+
+SELECT p.productid,p.productname, sum(p.price*ord.quantity) as total_sales FROM  products as p inner join orderdetails as ord on ord.productid=p.productid group by p.productid.p.productname;
+
+15.show category and total products in each category.
+
+SELECT cat.categoryid,cat.categoryname,count(p.productid) as total_products FROM Products as p inner join categories as cat on p.categoryid=cat.categoryid group by cat.categoryid,cat.categoryname;
+
+16.top 5 customers by total purchase amount.
+
+select TOP 5 c.customerid,c.customername,sum(p.price*ord.quantity) as total_purchase from customers as c inner join orders as o on o.customerid=c.customerid inner join orderdetails as ord on o.orderid=ord.orderid inner join products as p on p.productid=ord.productid group by c.customerid,c.customername order by sum(p.price*ord.quantity) desc;
+
+17.employee and number of orders handled.
+
+SELECT e.employeeid, e.firstname,count(orderid) as total_orders_handled FROM Orders as o inner join employees as e on o.employeeid=e.employeeid group by e.employeeid,e.firstname;
+
+18.total revenue per category.
+
+SELECT c.categoryid,c.categoryname,sum(p.price*ord.quantity) as total_revenue FROM Products as p inner join categories as c on c.categoryid=p.categoryid inner join orderdetails as ord on p.productid=ord.productid group by c.categoryid,c.categoryname;
+
+19.most sold product (by quantity).
+
+SELECT top 1 p.productid,p.productname, count(ord.quantity) as most_sold_product FROM OrderDetails as ord inner join products as p on ord.productid=p.productid group by p.productid,p.productname order by most_sold_product desc;
+
+20.Employee who generated the highest sales.
+
+SELECT top 1 e.employeeid,e.firstname,sum(p.price*ord.quantity) as highest_sales FROM Employees as e inner join orders as o on o.employeeid=e.employeeid inner join orderdetails as ord on o.orderid=ord.orderid inner join products as p on p.productid=ord.productid group by e.employeeid,e.firstname order by sum(p.price*ord.quantity) desc;
